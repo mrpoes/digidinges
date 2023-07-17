@@ -130,7 +130,7 @@ def parse_message(data, address):
     try:
         parsed_json = json.loads(data)
     except json.JSONDecodeError as e:
-        print("Error parsing JSON:", e)
+        logger.debug('Error parsing JSON:', e)
 
     data = parsed_json if parsed_json else data
     
@@ -175,7 +175,7 @@ def send_to_clients(message):
 
 
 def handle_client(client_socket: socket.socket, address):
-    while 1:
+    while True:
         try:
             send_client_list(client_socket)
 
@@ -228,7 +228,10 @@ def handle_client(client_socket: socket.socket, address):
                 send_to_clients(parsed_msg)
     
         except Exception as e:
-            logger.error(f'Something went wrong at {address}. Exception: {e}')
+            if 'string indices must be integers' in str(e):
+                logger.debug(f'Client exit @ {address}.')
+            else:
+                logger.error(f'Something went wrong at {address}. Exception: {e}\nData: {data}\n')
             break
     try:
         close_connection(client_socket, address)
@@ -248,7 +251,7 @@ def main():
     global host, port, timeout, heartbeat
     host = '10.140.0.240'
     port = 631
-    timeout = 4.2
+    timeout = 2.1
     heartbeat = 'HEARTBEAT'
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
